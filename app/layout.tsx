@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
+import { NextRequest } from "next/server";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,9 +14,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+  request,
+}: {
   children: React.ReactNode;
-}>) {
+  request: NextRequest;
+}) {
   return (
     <ClerkProvider>
       <html lang="en">

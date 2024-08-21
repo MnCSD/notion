@@ -91,3 +91,8 @@
   box-shadow: none !important;
   border-radius: 4px !important;
 }
+
+.transopac {
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
