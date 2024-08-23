@@ -5,7 +5,7 @@ const HomeIcon = () => {
     <svg
       role="graphics-symbol"
       viewBox="0 0 24 24"
-      className="w-6 h-6 fill-gray-400"
+      className="w-6 h-6 fill-[#9B9B9B]"
     >
       <g>
         <path d="M13.049 4.56l-1.05-.41-1.047.413.865 1.493.185-.155 2.564 2.15-1.517-3.49z"></path>

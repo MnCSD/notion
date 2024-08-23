@@ -149,14 +149,14 @@ const Header = () => {
                   ))}
 
                   <Link
-                    href="#"
+                    href="/sign-up"
                     className="bg-black w-full text-center text-white text-[14px] leading-[16px] font-medium hover:bg-gray-800 rounded-md px-3 py-[10px] mt-4 inline-block"
                   >
                     Get Notion Free
                   </Link>
 
                   <Link
-                    href="#"
+                    href="/sign-in"
                     className="w-full text-center text-black text-[14px] leading-[16px] font-medium hover:bg-gray-100 rounded-md px-3 py-[10px] mt-4 inline-block border border-gray-200"
                   >
                     Log in
@@ -178,13 +178,13 @@ const Header = () => {
           <div>
             {" "}
             <Link
-              href="#"
+              href="/sign-in"
               className="text-black text-[15px] leading-[16px] font-medium hover:bg-gray-100 rounded-md p-2"
             >
               Log in
             </Link>
             <Link
-              href="#"
+              href="/sign-up"
               className="bg-black text-white text-[14px] leading-[16px] font-medium hover:bg-gray-800 rounded-md px-3 py-[6px] ml-2"
             >
               Get Notion Free

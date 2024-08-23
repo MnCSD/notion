@@ -25,5 +25,34 @@ model User {
   role                   String   @default("user")
   hasCompletedOnboarding Boolean  @default(false)
 
+  pages Page[]
+
   // Add more fields as needed for your user model
+}
+
+model Page {
+  id        String   @id @default(uuid())
+  title     String
+  content   String?  @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  parentId String?
+  parent   Page?   @relation("PageToSubpages", fields: [parentId], references: [id], onDelete: SetNull)
+  subpages Page[]  @relation("PageToSubpages")
+
+  // User relationship
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  icon        String?
+  coverImage  String?
+  isArchived  Boolean @default(false)
+  isPublished Boolean @default(false)
+
+  // Indexing
+  @@index([userId])
+  @@index([parentId])
 }

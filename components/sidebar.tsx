@@ -2,17 +2,38 @@
 
 import { LINKS } from "@/constants";
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
-import React, { useRef } from "react";
+import { redirect, useRouter } from "next/navigation";
+import React, { useRef, useState, useTransition } from "react";
 import { useHover } from "usehooks-ts";
 import LinkItem from "./link-item";
+import { Page } from "@prisma/client";
+import {
+  ArrowRight,
+  ChevronRight,
+  MoreHorizontal,
+  PlusIcon,
+} from "lucide-react";
+import { createPage } from "@/actions/createPage";
+import Link from "next/link";
+import { useToast } from "./ui/use-toast";
+import Tooltip from "./tooltip";
+import TooltipComponent from "./tooltip";
+import PageItem from "./page-item";
 
-const Sidebar = () => {
+const Sidebar = ({ pages }: { pages: Page[] & { subpages: Page[] } }) => {
   const { user } = useUser();
   const hoverRef = useRef(null);
   const isHover = useHover(hoverRef);
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [expanded, setExpanded] = useState(false);
 
-  console.log(isHover);
+  console.log(pages);
+
+  if (!user?.id) {
+    redirect("/sign-in");
+  }
 
   if (isHover) {
     const transopacElements = document.querySelectorAll(".transopac");
@@ -32,12 +53,31 @@ const Sidebar = () => {
     });
   }
 
+  const handleAddPage = () => {
+    startTransition(async () => {
+      await createPage("Untitled")
+        .then((page) => {
+          toast({
+            title: "New page created",
+            description: "Page created successfully",
+            variant: "default",
+            duration: 2000,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  };
+
+  console.log(pages);
+
   return (
     <div
       ref={hoverRef}
-      className="w-full bg-sidebar h-screen border-r border-[#373737] border-opacity-50 cursor-pointer pt-2"
+      className="w-full bg-sidebar h-screen border-r border-[#373737] p-[4px_8px] border-opacity-50 cursor-pointer pt-2 "
     >
-      <div className=" group h-[32px] w-[95%] mx-auto rounded-md p-[4px_8px] pr-[2px] transition-all duration-200 justify-between flex items-center hover:bg-white/10 cursor-pointer">
+      <div className=" group h-[32px] w-[100%] pl-1 mx-auto rounded-md pr-[2px] transition-all duration-200 justify-between flex items-center hover:bg-white/10 cursor-pointer">
         <div className="flex items-center gap-x-2 w-[70%] ">
           <div className="w-[22px] h-[22px] ">
             <img
@@ -108,6 +148,59 @@ const Sidebar = () => {
             href={link.href || ""}
           />
         ))}
+      </div>
+
+      <div className="mt-5 pl-1 w-[100%]">
+        <div className="text-[#9B9B9B] group text-[12px] font-medium hover:bg-white/10 cursor-pointer py-[6px] w-[100%] pl-1 mx-auto rounded-md pr-[2px] transition-all duration-200 flex items-center justify-between">
+          <span> Private</span>
+
+          <div className="flex items-center pr-2 gap-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+            <div className="flex items-center justify-center w-[20px] h-[20px] opacity-100 hover:bg-white/5 transition-all duration-300 rounded-md">
+              <MoreHorizontal size={18} />
+            </div>
+
+            <TooltipComponent label="Add a page">
+              <div
+                onClick={handleAddPage}
+                className="flex items-center justify-center w-[20px] h-[20px] opacity-100 hover:bg-white/5 transition-all duration-300 rounded-md"
+              >
+                <PlusIcon size={16} />
+              </div>
+            </TooltipComponent>
+          </div>
+        </div>
+
+        {pages.length > 0 ? (
+          // @ts-ignore
+          pages.map((page: Page & { subpages: Page[] }) => (
+            <div key={page.id}>
+              <PageItem page={page} />
+              {page.subpages && page.subpages.length > 0 && (
+                <div className={`ml-4 `}>
+                  {page.subpages.map((subpage: Page) => (
+                    // @ts-ignore
+                    <PageItem key={subpage.id} page={subpage} isSubpage />
+                  ))}
+                </div>
+              )}
+              {page.subpages.length === 0 && (
+                <div className={`ml-[22px]`}>
+                  <span className="text-[#9B9B9B]/50 text-[14px] font-semibold">
+                    No pages inside
+                  </span>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div
+            onClick={handleAddPage}
+            className="gap-x-2 text-[#9B9B9B] text-[13px] hover:bg-white/10 cursor-pointer py-[6px] w-[100%] pl-1 mx-auto rounded-md pr-[2px] transition-all duration-200 flex items-center"
+          >
+            <PlusIcon size={17} strokeWidth={2.5} />
+            <span>Add a page</span>
+          </div>
+        )}
       </div>
     </div>
   );
