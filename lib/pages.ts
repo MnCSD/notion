@@ -30,9 +30,11 @@ export async function getParentPages(): Promise<Page[]> {
       where: {
         parentId: null,
         userId: user?.id,
+        isTrash: false,
       },
       include: {
         subpages: true,
+        user: true,
       },
     });
     return parentPages;

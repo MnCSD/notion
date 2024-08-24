@@ -26,8 +26,6 @@ model User {
   hasCompletedOnboarding Boolean  @default(false)
 
   pages Page[]
-
-  // Add more fields as needed for your user model
 }
 
 model Page {

@@ -6,7 +6,7 @@ import { redirect, useRouter } from "next/navigation";
 import React, { useRef, useState, useTransition } from "react";
 import { useHover } from "usehooks-ts";
 import LinkItem from "./link-item";
-import { Page } from "@prisma/client";
+import { Page, User } from "@prisma/client";
 import {
   ArrowRight,
   ChevronRight,
@@ -20,7 +20,11 @@ import Tooltip from "./tooltip";
 import TooltipComponent from "./tooltip";
 import PageItem from "./page-item";
 
-const Sidebar = ({ pages }: { pages: Page[] & { subpages: Page[] } }) => {
+const Sidebar = ({
+  pages,
+}: {
+  pages: Page[] & { subpages: Page[] } & { user: User };
+}) => {
   const { user } = useUser();
   const hoverRef = useRef(null);
   const isHover = useHover(hoverRef);
@@ -28,6 +32,7 @@ const Sidebar = ({ pages }: { pages: Page[] & { subpages: Page[] } }) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(false);
+  const [openOptions, setOpenOptions] = useState(false);
 
   console.log(pages);
 
@@ -70,7 +75,10 @@ const Sidebar = ({ pages }: { pages: Page[] & { subpages: Page[] } }) => {
     });
   };
 
-  console.log(pages);
+  const handleToggleOptions = (e: any) => {
+    e.stopPropagation();
+    setOpenOptions(!openOptions);
+  };
 
   return (
     <div
@@ -171,27 +179,39 @@ const Sidebar = ({ pages }: { pages: Page[] & { subpages: Page[] } }) => {
         </div>
 
         {pages.length > 0 ? (
-          // @ts-ignore
-          pages.map((page: Page & { subpages: Page[] }) => (
-            <div key={page.id}>
-              <PageItem page={page} />
-              {page.subpages && page.subpages.length > 0 && (
-                <div className={`ml-4 `}>
-                  {page.subpages.map((subpage: Page) => (
-                    // @ts-ignore
-                    <PageItem key={subpage.id} page={subpage} isSubpage />
-                  ))}
-                </div>
-              )}
-              {page.subpages.length === 0 && (
-                <div className={`ml-[22px]`}>
-                  <span className="text-[#9B9B9B]/50 text-[14px] font-semibold">
-                    No pages inside
-                  </span>
-                </div>
-              )}
-            </div>
-          ))
+          pages.map(
+            // @ts-ignore
+            (
+              page: Page & { subpages: Page[] } & { user: User },
+              index: number
+            ) => (
+              <div key={page.id}>
+                <PageItem page={page} />
+                {page.subpages && page.subpages.length > 0 && (
+                  <div className={`ml-4 `}>
+                    {/* @ts-ignore */}
+                    {page.subpages.map((subpage: Page & { user: User }) => (
+                      //@ts-ignore
+                      <PageItem
+                        key={subpage.id}
+                        //@ts-ignore
+                        page={subpage as Page & { user: User }}
+                        isSubpage
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                )}
+                {page.subpages && page.subpages.length === 0 && (
+                  <div className={`ml-[22px]`}>
+                    <span className="text-[#9B9B9B]/50 text-[14px] font-semibold">
+                      No pages inside
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          )
         ) : (
           <div
             onClick={handleAddPage}
