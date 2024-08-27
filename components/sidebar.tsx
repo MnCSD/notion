@@ -1,6 +1,6 @@
 "use client";
 
-import { LINKS } from "@/constants";
+import { LINKS, secondaryLinks } from "@/constants";
 import { useUser } from "@clerk/nextjs";
 import { redirect, useRouter } from "next/navigation";
 import React, { useRef, useState, useTransition } from "react";
@@ -19,11 +19,14 @@ import { useToast } from "./ui/use-toast";
 import Tooltip from "./tooltip";
 import TooltipComponent from "./tooltip";
 import PageItem from "./page-item";
+import useExpandStore from "@/store/useExpandStore";
 
 const Sidebar = ({
   pages,
+  archivedPages,
 }: {
   pages: Page[] & { subpages: Page[] } & { user: User };
+  archivedPages: Page[] & { parent: Page };
 }) => {
   const { user } = useUser();
   const hoverRef = useRef(null);
@@ -31,10 +34,8 @@ const Sidebar = ({
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [expanded, setExpanded] = useState(false);
   const [openOptions, setOpenOptions] = useState(false);
-
-  console.log(pages);
+  const { expanded, index: indexSidebar } = useExpandStore();
 
   if (!user?.id) {
     redirect("/sign-in");
@@ -79,6 +80,8 @@ const Sidebar = ({
     e.stopPropagation();
     setOpenOptions(!openOptions);
   };
+
+  console.log(indexSidebar, expanded);
 
   return (
     <div
@@ -185,10 +188,14 @@ const Sidebar = ({
               page: Page & { subpages: Page[] } & { user: User },
               index: number
             ) => (
-              <div key={page.id}>
-                <PageItem page={page} />
+              <div key={page.id} className={``}>
+                <PageItem page={page} indexProp={index} />
                 {page.subpages && page.subpages.length > 0 && (
-                  <div className={`ml-4 `}>
+                  <div
+                    className={`ml-4 ${
+                      expanded && indexSidebar === index && "hidden"
+                    }`}
+                  >
                     {/* @ts-ignore */}
                     {page.subpages.map((subpage: Page & { user: User }) => (
                       //@ts-ignore
@@ -196,14 +203,17 @@ const Sidebar = ({
                         key={subpage.id}
                         //@ts-ignore
                         page={subpage as Page & { user: User }}
-                        isSubpage
-                        index={index}
+                        isSubpage={true}
                       />
                     ))}
                   </div>
                 )}
                 {page.subpages && page.subpages.length === 0 && (
-                  <div className={`ml-[22px]`}>
+                  <div
+                    className={`ml-[22px] ${
+                      expanded && indexSidebar === index && "hidden"
+                    }`}
+                  >
                     <span className="text-[#9B9B9B]/50 text-[14px] font-semibold">
                       No pages inside
                     </span>
@@ -221,6 +231,19 @@ const Sidebar = ({
             <span>Add a page</span>
           </div>
         )}
+      </div>
+
+      <div className="mt-10">
+        {secondaryLinks.map((link, index) => (
+          <LinkItem
+            key={index}
+            index={index}
+            icon={typeof link.icon === "function" ? link.icon() : link.icon}
+            label={link.label}
+            href={link.href || ""}
+            archivedPages={archivedPages}
+          />
+        ))}
       </div>
     </div>
   );

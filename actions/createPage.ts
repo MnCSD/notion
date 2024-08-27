@@ -41,7 +41,6 @@ export const createPage = async (title: string, parentId?: string) => {
         },
       });
     } else {
-      console.log("top level");
       // Create a top-level page
       newPage = await db.page.create({
         data: {

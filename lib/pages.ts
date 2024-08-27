@@ -30,14 +30,51 @@ export async function getParentPages(): Promise<Page[]> {
       where: {
         parentId: null,
         userId: user?.id,
-        isTrash: false,
+        isArchived: false,
       },
       include: {
-        subpages: true,
+        subpages: {
+          where: {
+            isArchived: false,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
         user: true,
       },
     });
     return parentPages;
+  } catch (error) {
+    console.error("Error fetching parent documents:", error);
+    return [];
+  }
+}
+
+export async function getArchivedPages(): Promise<Page[]> {
+  const userClerk = await currentUser();
+
+  const user = await db.user.findUnique({
+    where: {
+      externalUserId: userClerk?.id,
+    },
+  });
+
+  if (!user) {
+    return [];
+  }
+
+  try {
+    const archivedPages = await db.page.findMany({
+      where: {
+        userId: user?.id,
+        isArchived: true,
+      },
+      include: {
+        parent: true,
+      },
+    });
+    return archivedPages;
   } catch (error) {
     console.error("Error fetching parent documents:", error);
     return [];

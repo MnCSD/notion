@@ -21,18 +21,23 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import useExpandStore from "@/store/useExpandStore";
+import { archivePage } from "@/actions/archivePage";
 
 const PageItem = ({
   page,
   isSubpage,
   onClick,
+  indexProp,
 }: {
   page: Page & { subpages: Page[] } & { user: User };
   isSubpage?: boolean;
   onClick?: (e: any) => void;
+  indexProp?: number;
 }) => {
   const router = useRouter();
   const [openOptions, setOpenOptions] = useState(false);
+  const { expanded, setIndex, index, setExpand } = useExpandStore();
 
   const [isPending, startTransition] = useTransition();
   //   expand the page
@@ -56,6 +61,19 @@ const PageItem = ({
     });
   };
 
+  const handleExpand = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setIndex(indexProp as number);
+
+    if (!isSubpage) {
+      if (indexProp !== index) {
+        setExpand(!expanded);
+      } else {
+        setExpand(!expanded);
+      }
+    }
+  };
+
   const handleAddPageInside = (
     e: React.MouseEvent<HTMLDivElement>,
     parentId: string
@@ -77,26 +95,49 @@ const PageItem = ({
     });
   };
 
+  const handleArchive = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+
+    startTransition(async () => {
+      await archivePage(page.id)
+        .then(() => {
+          toast({
+            title: "Moved to trash",
+            variant: "default",
+            duration: 2000,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+  };
+
   return (
     <div onClick={() => router.push(`/dashboard/${page.id}`)} className={``}>
       <div className=" text-[#9B9B9B] relative group hover:bg-white/10 cursor-pointer py-[6px] w-[100%] pl-1 mx-auto rounded-md pr-[2px] transition-all duration-200 flex items-center justify-between">
-        <div className="flex items-center gap-x-2 relative">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="#9B9B9B"
-            className="size-[18px] group-hover:opacity-0 opacity-100 transition-all duration-200"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-            />
-          </svg>
+        <div className="flex items-center gap-x-2 relative ">
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="#9B9B9B"
+              className="size-[18px] group-hover:opacity-0 opacity-100 transition-all duration-200"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+              />
+            </svg>
+          </div>
 
-          <div className="absolute left-0 flex items-center justify-center hover:bg-white/10 transition-all duration-200 w-[20px] h-[20px] rounded-md">
+          <div
+            onClick={handleExpand}
+            className="absolute z-[99999] left-0 flex items-center justify-center hover:bg-white/10 transition-all duration-200 w-[20px] h-[20px] rounded-md"
+          >
             <ChevronRight
               size={16}
               className=" opacity-0 group-hover:opacity-100 transition-all duration-200"
@@ -114,7 +155,10 @@ const PageItem = ({
                 <MoreHorizontal size={18} />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[rgb(37_37_37)] outline-none border-none shadow-lg rounded-lg min-w-[265px]">
+            <DropdownMenuContent
+              side="right"
+              className="bg-[rgb(37_37_37)] outline-none border-none shadow-lg rounded-lg min-w-[265px]"
+            >
               <div className="w-full  ">
                 <div className="flex items-center gap-x-2 m-1 w-full hover:bg-white/10 py-1 px-1 rounded-md cursor-pointer transition-all duration-300">
                   <Star size={16} stroke="#ffffffcf" />
@@ -137,7 +181,10 @@ const PageItem = ({
                   <span className="text-[#ffffffcf] text-[13px]">Rename</span>
                 </div>
 
-                <div className="flex items-center gap-x-2 m-1 w-full hover:bg-white/10 py-1 px-1 rounded-md cursor-pointer transition-all duration-300">
+                <div
+                  className="flex items-center gap-x-2 m-1 w-full hover:bg-white/10 py-1 px-1 rounded-md cursor-pointer transition-all duration-300"
+                  onClick={handleArchive}
+                >
                   <Trash2 size={16} stroke="#ffffffcf" />
                   <span className="text-[#ffffffcf] text-[13px]">
                     Move to Trash
